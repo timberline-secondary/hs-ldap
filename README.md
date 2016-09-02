@@ -3,5 +3,5 @@ ldap scripts for Timberline's Hackerspace
 
 ### Reminders
 
-Check a user `getent passwd username`
+Check users or a user: `getent passwd <optional_username>`
 
