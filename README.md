@@ -1,2 +1,7 @@
 # hs_ldap
-ldap scripts for TImberline's Hackerspace
+ldap scripts for Timberline's Hackerspace
+
+# Reminders
+
+Check a user `getent passwd username`
+
