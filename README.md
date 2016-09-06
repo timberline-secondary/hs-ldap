@@ -1,6 +1,15 @@
 # hs_ldap
 ldap scripts for Timberline's Hackerspace
 
+Student uid start: yy000 (where yy is the two digit year the student account was created)
+
+list users: `getent passwd`
+
+### Bulk user import
+Use `ldapbulkimport` script:
+
+`sudo ./ldapbulimport`
+
 ### Reminders
 
 Check users or a user: `getent passwd [username]`
