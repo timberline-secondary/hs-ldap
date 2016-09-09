@@ -91,9 +91,9 @@ IFS=","
 # read the csv file line by line
 while read username firstname lastname
   do
-    username=trim "$username"
-    firstname=trim "$firstname"
-    lastname=trim "$lastname"
+    username=$( trim "$username" )
+    firstname=$( trim "$firstname" )
+    lastname=$( trim "$lastname" )
     
     # check if the username (student number) already exists as a user
     id $username
