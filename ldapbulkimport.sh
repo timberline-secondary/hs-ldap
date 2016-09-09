@@ -16,7 +16,7 @@ add_user_to_ldif() {
 # for ldif format see
 # https://help.ubuntu.com/lts/serverguide/openldap-server.html#openldap-server-populate
 
-  echo "dn: uid=$studentnum,ou=Users,dc=hackerspace,dc=tbl\n\
+  echo -e "dn: uid=$studentnum,ou=Users,dc=hackerspace,dc=tbl\n\
 objectClass: inetOrgPerson\n\
 objectClass: posixAccount\n\
 objectClass: shadowAccount\n\
@@ -46,16 +46,16 @@ next_available_uid() {
   if [ "$USERINFO" ]; then
       # Already taken, increment and try again, recursive
       uidNumber=$((uidNumber+1))
-      echo $( next_available_uid "$uidNumber" )
+      echo -e $( next_available_uid "$uidNumber" )
   else
-      echo "$uidNumber"
+      echo -e "$uidNumber"
   fi
 }
 
 
 # MAIN 
 
-echo "\nReading $1:"
+echo -e "\nReading $1:"
 
 # if no uid parameter provided set start uid to yy000, yy = two digit current year
 if [ $2 ]; then
@@ -63,18 +63,18 @@ if [ $2 ]; then
 else
   uidNumber="$(date +'%y')000"
 fi
-echo "Starting uidNumber = $uidNumber\n"
+echo -e "Starting uidNumber = $uidNumber\n"
 
 # set lower uid limit
 UID_LOWER_LIMIT=1000
 if [ $uidNumber -lt $UID_LOWER_LIMIT ]; then
-  echo "** Please choose a starting uidNumber >= 1000 **"
+  echo -e "** Please choose a starting uidNumber >= 1000 **"
   exit
 fi
 
 # clear the output ldif file:
 ldiffile="$1.ldif"
-echo "" > "$ldiffile"
+echo -e "" > "$ldiffile"
 
 # count new users
 num_new_users=0
@@ -90,10 +90,10 @@ while read username firstname lastname
     id $username
     # if user found, exit code 0 from id command
     if [ "$?" = "0" ]; then
-	echo "$username already exists, skipped.\n"
+	echo -e "$username already exists, skipped.\n"
     else
 	uidNumber=$( next_available_uid "$uidNumber" )
-	echo "$username new, adding with uid=$uidNumber\n"
+	echo -e "$username new, adding with uid=$uidNumber\n"
 	add_user_to_ldif "$username" "$firstname" "$lastname" "$uidNumber" "$ldiffile"
         uidNumber=$((uidNumber+1))
 	num_new_users=$((num_new_users+1))
@@ -103,8 +103,8 @@ while read username firstname lastname
 IFS=$OLDIFS
 
 if [ "$num_new_users" = "0" ]; then
-  echo "No new users found\n"
+  echo -e "No new users found\n"
 else
-  echo "$num_new_users new users found. LDIF file created. To add users"
+  echo -e "$num_new_users new users found. LDIF file created. To add users"
   ldapadd -x -D cn=admin,dc=hackerspace,dc=tbl -W -f $ldiffile
 fi
