@@ -45,7 +45,7 @@ next_available_uid() {
   # if no user found, the result will be an empty
   if [ "$USERINFO" ]; then
       # Already taken, increment and try again, recursive
-      idNumber=$((uidNumber+1))
+      uidNumber=$((uidNumber+1))
       echo $( next_available_uid "$uidNumber" )
   else
       echo "$uidNumber"
