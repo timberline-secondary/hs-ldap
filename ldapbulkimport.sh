@@ -6,12 +6,6 @@
 # $2 is the uidNumber to start incrementing from.
 #  If emtpy, use yy000 where yy is the current two-digit year
 
-trim() {
-  # Use awk to trim leading and trailing whitespace
-  # http://www.cyberciti.biz/faq/bash-remove-whitespace-from-string/
-  echo -e "${output}" | awk '{gsub(/^ +| +$/,"")}'
-}
-
 add_user_to_ldif() {
   studentnum=$1
   firstname=$2
@@ -89,14 +83,18 @@ OLDIFS=$IFS
 IFS=","
 
 # read the csv file line by line
-while read username firstname lastname
+while read username_raw firstname_raw lastname_raw
   do
-    username=$( trim "$username" )
-    firstname=$( trim "$firstname" )
-    lastname=$( trim "$lastname" )
-    
-    echo $username $firstname $lastname
-    
+    echo "$username_raw $firstname_raw $lastname_raw"
+    # remove whitespace
+    # this is garbage!  SHould do this in a function, probabyl much cleanr way to do it...but it's working.
+    username=$(echo "${username_raw}" | awk '{gsub(/^ +| +$/,"")} {print $0}')
+    firstname=$(echo "${firstname_raw}" | awk '{gsub(/^ +| +$/,"")} {print $0}')
+    lastname=$(echo "${lastname_raw}" | awk '{gsub(/^ +| +$/,"")} {print $0}')
+
+    echo "$username $firstname $lastname"
+    echo "succes...?"
+
     # check if the username (student number) already exists as a user
     id $username
     # if user found, exit code 0 from id command
