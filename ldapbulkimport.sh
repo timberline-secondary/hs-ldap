@@ -95,6 +95,8 @@ while read username firstname lastname
     firstname=$( trim "$firstname" )
     lastname=$( trim "$lastname" )
     
+    echo $username $firstname $lastname
+    
     # check if the username (student number) already exists as a user
     id $username
     # if user found, exit code 0 from id command
