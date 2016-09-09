@@ -27,7 +27,7 @@ cn: "$firstname $lastname"\n\
 displayName: "$firstname $lastname"\n\
 uidNumber: $uidgid\n\
 gidNumber: $uidgid\n\
-userPassword: $firstname$studentnum\n\
+userPassword: wolf\n\
 gecos: "$firstname $lastname"\n\
 loginShell: /bin/bash\n\
 homeDirectory: /home/$studentnum\n\
