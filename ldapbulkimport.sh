@@ -10,7 +10,7 @@ add_user_to_ldif() {
   studentnum=$1
   firstname=$2
   lastname=$3
-  uidgid=$4
+  uidnum=$4
   filename=$5
 
 # for ldif format see
@@ -25,8 +25,8 @@ sn: $lastname\n\
 givenName: $firstname\n\
 cn: "$firstname $lastname"\n\
 displayName: "$firstname $lastname"\n\
-uidNumber: $uidgid\n\
-gidNumber: $uidgid\n\
+uidNumber: $uidnum\n\
+gidNumber: 5000\n\
 userPassword: wolf\n\
 gecos: "$firstname $lastname"\n\
 loginShell: /bin/bash\n\
