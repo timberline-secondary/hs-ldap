@@ -85,15 +85,11 @@ IFS=","
 # read the csv file line by line
 while read username_raw firstname_raw lastname_raw
   do
-    echo "$username_raw $firstname_raw $lastname_raw"
     # remove whitespace
     # this is garbage!  SHould do this in a function, probabyl much cleanr way to do it...but it's working.
     username=$(echo "${username_raw}" | awk '{gsub(/^ +| +$/,"")} {print $0}')
     firstname=$(echo "${firstname_raw}" | awk '{gsub(/^ +| +$/,"")} {print $0}')
     lastname=$(echo "${lastname_raw}" | awk '{gsub(/^ +| +$/,"")} {print $0}')
-
-    echo "$username $firstname $lastname"
-    echo "succes...?"
 
     # check if the username (student number) already exists as a user
     id $username
