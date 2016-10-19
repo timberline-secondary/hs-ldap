@@ -57,15 +57,109 @@ echo '************************************'
 echo
 echo 
 echo '1) Add individual User'
-echo '2) Reset Password'
+echo '2) Auto User Creation'
+echo '3) Reset Password'
 echo ____________________________________
 echo 
 read -p "Number: " Number
 
-if [ $Number == "2" ];
+if [ $Number == "3" ];
 then
 
 	echo 'Under Construction'
+elif [ $Number == "2" ];
+then
+
+clear
+#echo 'Place the class list in the root of the ldaputils folder'
+uidNumber="$(date +'%y')000"
+FILENAME=($RANDOM % 10 + 1)
+
+
+#Handle Users from File
+Handler1() {
+	Text=$(sed "${Line}!d" $FILE)
+	frmnum=$(echo $Text | cut -f1 -d",")
+	frmfirst=$(echo $Text | cut -f2 -d"," | tr '[:lower:]' '[:upper:]')
+	frmlast=$(echo $Text | cut -f3 -d"," | tr '[:lower:]' '[:upper:]')
+
+	#check if exist
+
+		if [ "$Line" -le "$Lines" ]; then
+				Line=$((Line+1)) 
+				echo $( Individual_User1 "$uidNumber" ) 
+		else
+				ldapadd -x -D cn=admin,dc=hackerspace,dc=tbl -W -f $folder/$FILENAME.csv.ldif
+				echo 'Successfully added users to ldap'
+		fi
+}
+
+
+
+Generate_Form1() {
+#Form Data
+File=""
+read -p "filename: " FILE
+Lines=$(wc -l "$FILE" | cut -d ' ' -f 1)
+Line=1
+Handler1;
+}
+
+#Make User File
+Make1() {
+#User Data
+printf "dn: uid=$frmnum,ou=Users,dc=hackerspace,dc=tbl\n\
+objectClass: inetOrgPerson\n\
+objectClass: posixAccount\n\
+objectClass: shadowAccount\n\
+uid: $frmnum\n\
+sn:$frmlast\n\
+givenName:$frmfirst\n\
+cn:$frmfirst$frmlast\n\
+displayName:$frmfirst$frmlast\n\
+uidNumber: $uidNumber\n\
+gidNumber: 5000\n\
+userPassword: wolf\n\
+gecos:$frmfirst$frmlast\n\
+loginShell: /bin/bash\n\
+homeDirectory: /home/$frmnum\n\n\
+" >> $folder/$FILENAME.csv.ldif
+uidNumber=$((uidNumber+1))
+Handler1;
+}
+
+
+Individual_User1() {
+  USERINFO=$(getent passwd $uidNumber)
+  #Check if user exists
+  if [ "$USERINFO" ]; then
+      uidNumber=$((uidNumber+1))
+      echo $( Individual_User1 "$uidNumber" )
+  else
+
+
+	#Check if user exists
+	if id -u "$frmnum" >/dev/null 2>&1; then
+		Handler1;
+		
+	else
+      		Make1;
+	fi
+
+
+  fi
+}
+
+echo $( Generate_Form1 )
+
+
+
+
+
+
+
+
+
 elif [ $Number == "1" ];
 then
 clear
