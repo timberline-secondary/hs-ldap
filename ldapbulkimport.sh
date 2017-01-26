@@ -10,13 +10,13 @@ add_user_to_ldif() {
   studentnum=$1
   firstname=$2
   lastname=$3
-  uidgid=$4
+  uidnum=$4
   filename=$5
 
 # for ldif format see
 # https://help.ubuntu.com/lts/serverguide/openldap-server.html#openldap-server-populate
 
-  echo "dn: uid=$studentnum,ou=Users,dc=hackerspace,dc=tbl\n\
+  echo -e "dn: uid=$studentnum,ou=Users,dc=hackerspace,dc=tbl\n\
 objectClass: inetOrgPerson\n\
 objectClass: posixAccount\n\
 objectClass: shadowAccount\n\
@@ -25,8 +25,8 @@ sn: $lastname\n\
 givenName: $firstname\n\
 cn: "$firstname $lastname"\n\
 displayName: "$firstname $lastname"\n\
-uidNumber: $uidgid\n\
-gidNumber: $uidgid\n\
+uidNumber: $uidnum\n\
+gidNumber: 5000\n\
 userPassword: wolf\n\
 gecos: "$firstname $lastname"\n\
 loginShell: /bin/bash\n\
@@ -45,17 +45,17 @@ next_available_uid() {
   # if no user found, the result will be an empty
   if [ "$USERINFO" ]; then
       # Already taken, increment and try again, recursive
-      idNumber=$((uidNumber+1))
-      echo $( next_available_uid "$uidNumber" )
+      uidNumber=$((uidNumber+1))
+      echo -e $( next_available_uid "$uidNumber" )
   else
-      echo "$uidNumber"
+      echo -e "$uidNumber"
   fi
 }
 
 
 # MAIN 
 
-echo "\nReading $1:"
+echo -e "\nReading $1:"
 
 # if no uid parameter provided set start uid to yy000, yy = two digit current year
 if [ $2 ]; then
@@ -63,18 +63,18 @@ if [ $2 ]; then
 else
   uidNumber="$(date +'%y')000"
 fi
-echo "Starting uidNumber = $uidNumber\n"
+echo -e "Starting uidNumber = $uidNumber\n"
 
 # set lower uid limit
 UID_LOWER_LIMIT=1000
 if [ $uidNumber -lt $UID_LOWER_LIMIT ]; then
-  echo "** Please choose a starting uidNumber >= 1000 **"
+  echo -e "** Please choose a starting uidNumber >= 1000 **"
   exit
 fi
 
 # clear the output ldif file:
 ldiffile="$1.ldif"
-echo "" > "$ldiffile"
+echo -e "" > "$ldiffile"
 
 # count new users
 num_new_users=0
@@ -83,17 +83,22 @@ OLDIFS=$IFS
 IFS=","
 
 # read the csv file line by line
-while read username firstname lastname
+while read username_raw firstname_raw lastname_raw
   do
+    # remove whitespace
+    # this is garbage!  SHould do this in a function, probabyl much cleanr way to do it...but it's working.
+    username=$(echo "${username_raw}" | awk '{gsub(/^ +| +$/,"")} {print $0}')
+    firstname=$(echo "${firstname_raw}" | awk '{gsub(/^ +| +$/,"")} {print $0}')
+    lastname=$(echo "${lastname_raw}" | awk '{gsub(/^ +| +$/,"")} {print $0}')
+
     # check if the username (student number) already exists as a user
-    #USERINFO=$(getent passwd $username)
     id $username
     # if user found, exit code 0 from id command
     if [ "$?" = "0" ]; then
-	echo "$username already exists, skipped.\n"
+	echo -e "$username already exists, skipped.\n"
     else
 	uidNumber=$( next_available_uid "$uidNumber" )
-	echo "$username new, adding with uid=$uidNumber\n"
+	echo -e "$username new, adding with uid=$uidNumber\n"
 	add_user_to_ldif "$username" "$firstname" "$lastname" "$uidNumber" "$ldiffile"
         uidNumber=$((uidNumber+1))
 	num_new_users=$((num_new_users+1))
@@ -103,8 +108,8 @@ while read username firstname lastname
 IFS=$OLDIFS
 
 if [ "$num_new_users" = "0" ]; then
-  echo "No new users found\n"
+  echo -e "No new users found\n"
 else
-  echo "$num_new_users new users found. LDIF file created. To add users"
+  echo -e "$num_new_users new users found. LDIF file created. To add users"
   ldapadd -x -D cn=admin,dc=hackerspace,dc=tbl -W -f $ldiffile
 fi
