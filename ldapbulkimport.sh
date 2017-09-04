@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # $1 is a csv file with user data (with no headings) of the form:
 # 9912345,firstname,lastname
 #
@@ -16,7 +15,7 @@ add_user_to_ldif() {
 # for ldif format see
 # https://help.ubuntu.com/lts/serverguide/openldap-server.html#openldap-server-populate
 
-  echo -e "dn: uid=$studentnum,ou=Users,dc=hackerspace,dc=tbl\n\
+echo -e "dn: uid=$studentnum,ou=Users,dc=hackerspace,dc=tbl\n\
 objectClass: inetOrgPerson\n\
 objectClass: posixAccount\n\
 objectClass: shadowAccount\n\
@@ -78,6 +77,8 @@ echo -e "" > "$ldiffile"
 
 # count new users
 num_new_users=0
+# an array to hold new users, also needed to create home drives at end
+declare -a new_user_array
 
 OLDIFS=$IFS
 IFS=","
@@ -101,15 +102,22 @@ while read username_raw firstname_raw lastname_raw
 	echo -e "$username new, adding with uid=$uidNumber\n"
 	add_user_to_ldif "$username" "$firstname" "$lastname" "$uidNumber" "$ldiffile"
         uidNumber=$((uidNumber+1))
+	new_user_array[$num_new_users]=$username
 	num_new_users=$((num_new_users+1))
     fi
 
  done < $1
 IFS=$OLDIFS
 
+
+# use the ldif file to create the users
 if [ "$num_new_users" = "0" ]; then
-  echo -e "No new users found\n"
+    echo -e "No new users found\n"
 else
-  echo -e "$num_new_users new users found. LDIF file created. To add users"
-  ldapadd -x -D cn=admin,dc=hackerspace,dc=tbl -W -f $ldiffile
+    echo -e "$num_new_users new users found. LDIF file created. To add users..."
+    ldapadd -x -D cn=admin,dc=hackerspace,dc=tbl -W -f $ldiffile
+
+    # create home drives. Because we are using autofs, they won't be created when the user logs in.
+    echo -e "Creating home directories for the new users."
+    ssh -t hackerspace_admin@tyrell "sudo /nfshome/makehomedirs.sh ${new_user_array[*]}"
 fi
